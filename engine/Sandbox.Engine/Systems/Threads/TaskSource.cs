@@ -528,17 +528,19 @@ public struct TaskSource
 	}
 
 	/// <inheritdoc cref="Task.WhenAny(Task[])" />
-	public async Task WhenAny( params Task[] tasks )
+	public async Task<Task> WhenAny( params Task[] tasks )
 	{
-		await Task.WhenAny( tasks ).WaitAsync( _cancellation );
+		var result = await Task.WhenAny( tasks ).WaitAsync( _cancellation );
 		CancelIfInvalid();
+		return result;
 	}
 
 	/// <inheritdoc cref="Task.WhenAny(IEnumerable{Task})" />
-	public async Task WhenAny( IEnumerable<Task> tasks )
+	public async Task<Task> WhenAny( IEnumerable<Task> tasks )
 	{
-		await Task.WhenAny( tasks ).WaitAsync( _cancellation );
+		var result = await Task.WhenAny( tasks ).WaitAsync( _cancellation );
 		CancelIfInvalid();
+		return result;
 	}
 
 	/// <inheritdoc cref="Task.WaitAny(Task[])" />
