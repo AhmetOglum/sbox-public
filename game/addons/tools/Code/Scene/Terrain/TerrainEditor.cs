@@ -60,7 +60,6 @@ public class TerrainEditorTool : EditorTool
 		// Brush Type
 		{
 			var group = sidebar.AddGroup( "Brush Type" );
-
 			group.Add( new BrushPreviewWidget( sidebar ) );
 		}
 
@@ -76,47 +75,51 @@ public class TerrainEditorTool : EditorTool
 			group.Add( opacityRow );
 		}
 
-		SetOpacityToolTip( opacityRow );
-
-		// Material selection
-		var terrain = GetSelectedComponent<Terrain>();
-		if ( terrain.IsValid() )
+		// Paint-only sections — hidden unless PaintTextureTool is active
+		var paintOnlySection = new PaintOnlySectionWidget( this, opacityRow );
 		{
-			var group = sidebar.AddGroup( "Materials", SizeMode.Flexible );
-
-			var materialList = new TerrainMaterialList( sidebar, terrain );
-			materialList.ItemSize += 24;
-			materialList.BuildItems();
-			group.Add( materialList );
-
-			var hlayout = group.AddRow();
-			hlayout.Spacing = 8;
-			hlayout.AddStretchCell();
-
-			var newTerrainMat = new Button( "New Terrain Material" );
-			newTerrainMat.Clicked += () => NewTerrainMaterial( terrain, materialList );
-
-			var cloudMats = new Button( "Browse", "cloud" );
-			cloudMats.Clicked += () =>
+			// Material selection
+			var terrain = GetSelectedComponent<Terrain>();
+			if ( terrain.IsValid() )
 			{
-				var picker = AssetPicker.Create( null, AssetType.FromExtension( "tmat" ) );
-				picker.OnAssetPicked = x =>
-				{
-					var material = x.First().LoadResource<TerrainMaterial>();
-					terrain.Storage.Materials.Add( material );
-					terrain.UpdateMaterialsBuffer();
-					materialList?.BuildItems();
-				};
-				picker.Show();
-			};
+				var group = ToolSidebarWidget.CreateGroupWidget( "Materials", SizeMode.Flexible );
+				paintOnlySection.Layout.Add( group );
 
-			hlayout.Add( cloudMats );
-			hlayout.Add( newTerrainMat, 1 );
+				var materialList = new TerrainMaterialList( paintOnlySection, terrain );
+				materialList.ItemSize += 24;
+				materialList.BuildItems();
+				group.ContentLayout.Add( materialList );
+
+				var hlayout = group.ContentLayout.AddRow();
+				hlayout.Spacing = 8;
+				hlayout.AddStretchCell();
+
+				var newTerrainMat = new Button( "New Terrain Material" );
+				newTerrainMat.Clicked += () => NewTerrainMaterial( terrain, materialList );
+
+				var cloudMats = new Button( "Browse", "cloud" );
+				cloudMats.Clicked += () =>
+				{
+					var picker = AssetPicker.Create( null, AssetType.FromExtension( "tmat" ) );
+					picker.OnAssetPicked = x =>
+					{
+						var material = x.First().LoadResource<TerrainMaterial>();
+						terrain.Storage.Materials.Add( material );
+						terrain.UpdateMaterialsBuffer();
+						materialList?.BuildItems();
+					};
+					picker.Show();
+				};
+
+				hlayout.Add( cloudMats );
+				hlayout.Add( newTerrainMat, 1 );
+			}
+
+			sidebar.Layout.Add( paintOnlySection );
 		}
-		else
-		{
-			sidebar.Layout.AddStretchCell();
-		}
+
+		sidebar.Layout.AddStretchCell();
+		SetOpacityToolTip( opacityRow );
 
 		return sidebar;
 	}
@@ -141,7 +144,7 @@ public class TerrainEditorTool : EditorTool
 		asset.OpenInEditor();
 	}
 
-	static void SetOpacityToolTip( ControlSheetRow row )
+	internal static void SetOpacityToolTip( ControlSheetRow row )
 	{
 		var tip = "Controls how strongly the selected material is painted";
 		row.Enabled = true;
@@ -187,9 +190,47 @@ public class TerrainEditorTool : EditorTool
 		foreach ( var terrain in scene.Components.GetAll<Terrain>( FindMode.EverythingInDescendants ) )
 		{
 			if ( terrain.Storage is null ) continue;
+			if ( string.IsNullOrEmpty( terrain.Storage.ResourcePath ) ) continue;
 
 			var asset = AssetSystem.FindByPath( terrain.Storage.ResourcePath );
 			asset?.SaveToDisk( terrain.Storage );
+		}
+	}
+}
+
+/// <summary>
+/// Container that shows/hides itself based on whether PaintTextureTool is the active subtool.
+/// </summary>
+internal class PaintOnlySectionWidget : Widget
+{
+	readonly TerrainEditorTool _tool;
+	readonly ControlSheetRow _opacityRow;
+
+	public PaintOnlySectionWidget( TerrainEditorTool tool, ControlSheetRow opacityRow ) : base( null )
+	{
+		_tool = tool;
+		_opacityRow = opacityRow;
+		Layout = Layout.Column();
+		Layout.Spacing = 2;
+	}
+
+	[EditorEvent.Frame]
+	void Tick()
+	{
+		bool isPaint = _tool.CurrentTool is PaintTextureTool;
+		Hidden = !isPaint;
+
+		if ( !_opacityRow.IsValid() ) return;
+
+		if ( !isPaint )
+		{
+			_opacityRow.Enabled = true;
+			_opacityRow.ToolTip = "";
+			if ( _opacityRow.ControlWidget.IsValid() ) _opacityRow.ControlWidget.ToolTip = "";
+		}
+		else
+		{
+			TerrainEditorTool.SetOpacityToolTip( _opacityRow );
 		}
 	}
 }
