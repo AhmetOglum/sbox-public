@@ -61,9 +61,12 @@ class PreviewImage : AssetPreview
 	{
 		using ( Scene.Push() )
 		{
-			var background = new GameObject( true, "checkerboard" );
-			background.WorldPosition = Vector3.Forward;
-			AddSprite( background, GetCheckerboardTexture() );
+			if ( !IsRenderingThumbnail )
+			{
+				var background = new GameObject( true, "checkerboard" );
+				background.WorldPosition = Vector3.Forward;
+				AddSprite( background, GetCheckerboardTexture() );
+			}
 
 			PrimaryObject = new GameObject( true, "texture" );
 			PrimaryObject.WorldTransform = Transform.Zero;
