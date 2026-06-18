@@ -330,12 +330,9 @@ public partial class GameObject
 					return;
 				}
 
-				// Need to create those since they are not stored
-				if ( !PrefabInstance.InitMappingsForNestedInstance( node[JsonKeys.Id].Deserialize<Guid>() ) )
-				{
-					PostDeserialize( options );
-					return;
-				}
+				// Build the (unstored) nested mappings in PostDeserialize, once the subtree has its
+				// final ids. Doing it here would run against temp ids and an empty subtree.
+				_pendingNestedMappingId = node[JsonKeys.Id].Deserialize<Guid>();
 			}
 		}
 		// Handle full prefab instances
@@ -848,6 +845,14 @@ public partial class GameObject
 
 	internal void PostDeserialize( DeserializeOptions options )
 	{
+		// Build deferred nested mappings now the subtree has its final ids, before
+		// PushDeserializeContext consumes the lookup.
+		if ( _pendingNestedMappingId is Guid pendingNestedMappingId )
+		{
+			_pendingNestedMappingId = null;
+			PrefabInstance.InitMappingsForNestedInstance( pendingNestedMappingId );
+		}
+
 		using var prefabContext = PushDeserializeContext();
 
 		Components.ForEach( "PostDeserialize", true, c => c.PostDeserialize() );
