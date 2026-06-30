@@ -187,6 +187,33 @@ public class NetworkTest
 	}
 
 	[TestMethod]
+	public void MalformedClientTickIsDroppedAndDoesNotThrow()
+	{
+		Assert.IsNotNull( TypeLibrary.GetType<ModelRenderer>(), "TypeLibrary hasn't been given the game assembly" );
+
+		using var scope = new Scene().Push();
+		using var clientAndHost = new ClientAndHost( TypeLibrary );
+
+		// Only the host receives client ticks.
+		clientAndHost.BecomeHost();
+
+		// Malformed ClientTick: the count claims 4 origins (48 bytes) but only 1 (12 bytes) follows.
+		// The receiver must drop it, not read past the buffer and throw.
+		var write = ByteStream.Create( 64 );
+		write.Write( (char)4 );
+		write.Write( 1.0f ); write.Write( 2.0f ); write.Write( 3.0f ); // only one origin of data
+		using var reader = ByteStream.CreateReader( write.ToArray() );
+		write.Dispose();
+
+		// Must not throw.
+		Networking.System.OnReceiveClientTick( reader, clientAndHost.Client );
+
+		// Dropped: visibility origins left untouched, not allocated from the bogus count.
+		Assert.AreEqual( 0, clientAndHost.Client.VisibilityOrigins.Length,
+			"Malformed ClientTick should have been dropped without touching VisibilityOrigins" );
+	}
+
+	[TestMethod]
 	public void RegisterSyncProps()
 	{
 		Assert.IsNotNull( Game.TypeLibrary.GetType<ModelRenderer>(), "TypeLibrary hasn't been given the game assembly" );
