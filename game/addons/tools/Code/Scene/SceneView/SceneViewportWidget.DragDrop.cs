@@ -100,10 +100,10 @@ public partial class SceneViewportWidget : Widget
 			{
 				var dist = 0.0f;
 				if ( !State.Is2D )
-					dist = State.CameraPosition.z < 0.0f ? lastHeight ?? State.CameraPosition.z - 200 : 0.0f;
+					dist = lastHeight ?? 0.0f;
 
 				var plane = new Plane( State.Is2D ? State.CameraRotation.Backward : Vector3.Up, dist );
-				if ( plane.TryTrace( new Ray( tr.StartPosition, tr.Direction ), out tr.EndPosition ) )
+				if ( plane.TryTrace( new Ray( tr.StartPosition, tr.Direction ), out tr.EndPosition, twosided: true ) )
 				{
 					tr.Normal = plane.Normal;
 					tr.HitPosition = tr.EndPosition;
