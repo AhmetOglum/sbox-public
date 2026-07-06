@@ -6,7 +6,7 @@ namespace Editor.MeshEditor;
 /// Select and edit edges.
 /// </summary>
 [Title( "Edge Tool" )]
-[Icon( "show_chart" )]
+[Icon( "meshtools/sub-tools/edge_tool.png" )]
 [Alias( "tools.edge-tool" )]
 [Group( "2" )]
 public sealed partial class EdgeTool( MeshTool tool ) : SelectionTool<MeshEdge>( tool )

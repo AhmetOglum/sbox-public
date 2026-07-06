@@ -7,7 +7,7 @@ namespace Editor.MeshEditor;
 /// Select and edit objects.
 /// </summary>
 [Title( "Object Selection" )]
-[Icon( "layers" )]
+[Icon( "meshtools/sub-tools/object_selection.png" )]
 [Alias( "tools.object-selection" )]
 [Group( "5" )]
 public sealed partial class ObjectSelection( MeshTool tool ) : SelectionTool( tool )
