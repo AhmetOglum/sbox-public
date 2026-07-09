@@ -28,6 +28,11 @@ native accessor g_pResourceSystem as NativeEngine.g_pResourceSystem
 managed class Sandbox.Resource
 {
 	static void OnResourceReloaded( string name, void* resourceBinding );
+
+	// Called when a resource's file data has been loaded. The header is the
+	// resource file's non-streaming data and is only valid during the call -
+	// copy out anything you want.
+	static void OnResourceLoaded( string name, void* header );
 }
 
 
