@@ -15,7 +15,7 @@ namespace SboxEditorLauncher;
 /// </summary>
 static partial class Program
 {
-	const uint SboxAppId = 590830;
+	const uint SboxAppId = 480;
 	const string SboxDevExe = "sbox-dev.exe";
 
 	[STAThread]
