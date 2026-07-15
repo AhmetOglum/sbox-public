@@ -16,8 +16,9 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Bağımlılıkları Kur ve Derle
+        shell: cmd
         run: |
-          call Bootstrap.bat
+          Bootstrap.bat
 
       - name: Oyunu Paketle ve İndirme Linki Yap
         uses: actions/upload-artifact@v4
